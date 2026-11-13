@@ -1,0 +1,27 @@
+{
+  "name": "normail-agent-relay",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A small relay you run in your own Cloudflare account. Normail calls it when your Claude agent has work, and it starts the agent with a token that never leaves your account.",
+  "license": "MIT",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "test": "node --test"
+  },
+  "cloudflare": {
+    "label": "Normail agent relay",
+    "products": ["Workers"],
+    "bindings": {
+      "NORMAIL_SIGNING_SECRET": {
+        "description": "The signing secret. Normail shows it to you once, on the screen where you set up the relay. Copy it from there and paste it here."
+      },
+      "CLAUDE_TRIGGER_URL": {
+        "description": "The trigger address of your Claude scheduled task. In Claude, open the task, open its API trigger, and copy the address. It starts with https://api.anthropic.com/v1/claude_code/routines/ and ends with /fire."
+      },
+      "CLAUDE_TRIGGER_TOKEN": {
+        "description": "The trigger token of your Claude scheduled task. It is shown next to the address on the task's API trigger and starts with sk-ant-oat01-. Normail never sees this token; only your Cloudflare account holds it."
+      }
+    }
+  }
+}

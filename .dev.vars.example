@@ -1,0 +1,4 @@
+# The three settings the relay needs. These are placeholders: the real values go in Cloudflare, never in this file.
+NORMAIL_SIGNING_SECRET=paste-the-signing-secret-from-normail
+CLAUDE_TRIGGER_URL=https://api.anthropic.com/v1/claude_code/routines/trig_xxxxxxxx/fire
+CLAUDE_TRIGGER_TOKEN=paste-the-trigger-token-from-claude
