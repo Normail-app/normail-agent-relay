@@ -6,7 +6,7 @@
   "description": "A small relay you run in your own Cloudflare account. Normail calls it when your Claude agent has work, and it starts the agent with a token that never leaves your account.",
   "license": "MIT",
   "scripts": {
-    "deploy": "wrangler deploy",
+    "deploy": "npx wrangler deploy",
     "test": "node --test"
   },
   "cloudflare": {
