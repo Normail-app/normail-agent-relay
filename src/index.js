@@ -21,9 +21,15 @@ const json = (status, body, headers = {}) => new Response(JSON.stringify(body), 
 });
 const refused = () => json(401, { error: 'unauthorized' });
 
-const present = (v) => typeof v === 'string' && v.trim() !== '';
+// The example file ships each setting as REPLACE-ME-...: a value nobody has replaced counts as not set, so a forgotten field
+// answers relay_not_configured (or relay_secret_missing) and the status page marks it missing.
+const PLACEHOLDER = /^REPLACE-ME/i;
 // A setting as pasted: a trailing space or newline is not part of it.
-const setting = (v) => (typeof v === 'string' ? v.trim() : '');
+const setting = (v) => {
+  const t = typeof v === 'string' ? v.trim() : '';
+  return PLACEHOLDER.test(t) ? '' : t;
+};
+const present = (v) => setting(v) !== '';
 
 // Constant-time comparison of two strings of equal length (a different length is not secret: the signature has a fixed shape).
 function sameText(a, b) {
@@ -98,7 +104,9 @@ function boardsOf(body) {
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function statusPage(origin, env) {
-  const row = (label, ok) => `<tr><td>${label}</td><td>${ok ? 'present' : 'missing'}</td></tr>`;
+  const row = (label, ok, other) => `<tr><td>${label}</td><td>${ok ? 'present' : other || 'missing'}</td></tr>`;
+  // The trigger address is present only when a wake would accept it; any other value is named, never shown.
+  const url = setting(env.CLAUDE_TRIGGER_URL);
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Normail agent relay</title>
@@ -111,7 +119,7 @@ input{width:100%;font:inherit;padding:.5rem;box-sizing:border-box}button{font:in
 <h1>This relay is running</h1>
 <table>
 ${row('Signing secret', present(env.NORMAIL_SIGNING_SECRET))}
-${row('Trigger address', present(env.CLAUDE_TRIGGER_URL))}
+${row('Trigger address', TRIGGER_URL.test(url), url ? 'not a Claude trigger address' : '')}
 ${row('Trigger token', present(env.CLAUDE_TRIGGER_TOKEN))}
 </table>
 <p>This relay's address</p>

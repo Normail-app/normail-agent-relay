@@ -242,3 +242,37 @@ test('every other path and method is refused', async () => {
   assert.equal((await handle(new Request('https://r.example/', { method: 'PUT', body: '{}' }), env, {})).status, 405);
   assert.equal((await handle(new Request('https://r.example/', { method: 'DELETE' }), env, {})).status, 405);
 });
+
+test('the placeholders of .dev.vars.example are not settings: each answers not configured, and the page marks them missing', async () => {
+  const ph = { NORMAIL_SIGNING_SECRET: 'REPLACE-ME-paste-the-signing-secret-from-normail', CLAUDE_TRIGGER_URL: 'REPLACE-ME-paste-the-trigger-address-from-claude', CLAUDE_TRIGGER_TOKEN: 'REPLACE-ME-paste-the-trigger-token-from-claude' };
+  const f = spy(ok());
+  const res = await handle(wake(), { ...env, CLAUDE_TRIGGER_URL: ph.CLAUDE_TRIGGER_URL }, { fetch: f, now: () => NOW });
+  assert.equal(res.status, 500);
+  assert.deepEqual(await res.json(), { error: 'relay_not_configured' });
+  const tok = await handle(wake(), { ...env, CLAUDE_TRIGGER_TOKEN: ph.CLAUDE_TRIGGER_TOKEN }, { fetch: f, now: () => NOW });
+  assert.deepEqual(await tok.json(), { error: 'relay_not_configured' });
+  const sec = await handle(wake(), { ...env, NORMAIL_SIGNING_SECRET: ph.NORMAIL_SIGNING_SECRET }, { fetch: f, now: () => NOW });
+  assert.deepEqual(await sec.json(), { error: 'relay_secret_missing' });
+  assert.equal(f.calls.length, 0);
+  const page = await (await handle(new Request('https://relay.example.workers.dev/'), ph, {})).text();
+  assert.equal((page.match(/missing/g) || []).length, 3);
+  assert.ok(!page.includes('REPLACE-ME'));
+});
+
+test('.dev.vars.example holds only placeholders the relay refuses, and package.json deploys through npx', async () => {
+  const { readFileSync } = await import('node:fs');
+  const vars = readFileSync(new URL('../.dev.vars.example', import.meta.url), 'utf8').split('\n').filter((l) => /^[A-Z_]+=/.test(l));
+  assert.equal(vars.length, 3);
+  for (const l of vars) assert.match(l.split('=')[1], /^REPLACE-ME/);
+  assert.equal(JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).scripts.deploy, 'npx wrangler deploy');
+});
+
+test('the status page shows the trigger address as present only when it has a Claude trigger address\'s shape, and never shows the value', async () => {
+  const page = async (CLAUDE_TRIGGER_URL) => (await handle(new Request('https://relay.example.workers.dev/'), { ...env, CLAUDE_TRIGGER_URL }, {})).text();
+  const wrong = 'https://example.com/not-a-trigger-secret-value';
+  const html = await page(wrong);
+  assert.match(html, /<td>Trigger address<\/td><td>not a Claude trigger address<\/td>/);
+  assert.ok(!html.includes('not-a-trigger-secret-value'));
+  assert.match(await page(TRIGGER), /<td>Trigger address<\/td><td>present<\/td>/);
+  assert.match(await page(''), /<td>Trigger address<\/td><td>missing<\/td>/);
+});

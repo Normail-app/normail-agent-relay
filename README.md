@@ -11,8 +11,8 @@ Nothing. It keeps no database, no log and no copy of any request. It holds three
 | Setting | What it is | Where it comes from |
 | --- | --- | --- |
 | `NORMAIL_SIGNING_SECRET` | The secret Normail signs each call with | Shown once on Normail's setup screen |
-| `CLAUDE_TRIGGER_URL` | The address that starts your scheduled task | The API trigger of your Claude scheduled task |
-| `CLAUDE_TRIGGER_TOKEN` | The token that lets the address be called | The same API trigger |
+| `CLAUDE_TRIGGER_URL` | The address that starts your scheduled task | The saved task's page in Claude: under Triggers, the copy icon next to API |
+| `CLAUDE_TRIGGER_TOKEN` | The token that lets the address be called | Shown once when you press Generate token on the task |
 
 ## What it does
 
@@ -40,8 +40,23 @@ never shows a value.
 ## Set it up
 
 Use the Deploy button Normail's setup screen shows. It needs a free Cloudflare account and a GitHub or GitLab account. If your
-workplace manages Cloudflare, ask its administrator. To deploy by hand instead: `npm install -g wrangler`, then in this folder
-`wrangler secret put NORMAIL_SIGNING_SECRET`, the same for the other two, and `wrangler deploy`.
+workplace manages Cloudflare, ask its administrator.
+
+Cloudflare's page must name `normail-agent-relay`. If Cloudflare's sign-in drops the link and the page offers one of your own
+repositories, or names anything else, close it and press Deploy the relay again.
+
+The form shows the three settings with a placeholder that starts `REPLACE-ME`. Replace each one. The relay treats a placeholder as
+not set: a field you forget answers `relay_not_configured` (or `relay_secret_missing`), and the status page marks it missing.
+
+After it deploys, open the Worker's Domains tab. If it says no URLs are enabled, enable workers.dev there first. Then open the
+address: it should show "This relay is running". The status page marks the trigger address present only when it has the shape of a
+Claude trigger address; otherwise it says "not a Claude trigger address".
+
+To deploy by hand instead: in this folder, `npx wrangler secret put NORMAIL_SIGNING_SECRET`, the same for the other two, and
+`npx wrangler deploy` (the same as `npm run deploy`, which runs it through `npx`, so nothing needs installing first).
+
+If the first build fails, Cloudflare cannot retry it ("Cannot retry a build that was created with a seed_repo override"). Fix the
+setting, then push any commit to your copy of the repository, or delete the Worker and press Deploy again.
 
 ## Remove it
 

@@ -14,13 +14,13 @@
     "products": ["Workers"],
     "bindings": {
       "NORMAIL_SIGNING_SECRET": {
-        "description": "The signing secret. Normail shows it to you once, on the screen where you set up the relay. Copy it from there and paste it here."
+        "description": "The signing secret. Normail shows it to you once, on the screen where you set up the relay. Copy it from there and replace the placeholder with it."
       },
       "CLAUDE_TRIGGER_URL": {
-        "description": "The trigger address of your Claude scheduled task. In Claude, open the task, open its API trigger, and copy the address. It starts with https://api.anthropic.com/v1/claude_code/routines/ and ends with /fire."
+        "description": "The trigger address of your Claude scheduled task. In Claude, open the saved task, find Triggers, and press the small copy icon next to API. Replace the placeholder with it. It starts with https://api.anthropic.com/v1/claude_code/routines/ and ends with /fire."
       },
       "CLAUDE_TRIGGER_TOKEN": {
-        "description": "The trigger token of your Claude scheduled task. It is shown next to the address on the task's API trigger and starts with sk-ant-oat01-. Normail never sees this token; only your Cloudflare account holds it."
+        "description": "The trigger token of your Claude scheduled task, shown once when you press Generate token on the task. Replace the placeholder with it. It starts with sk-ant-oat01-. Normail never sees this token; only your Cloudflare account holds it."
       }
     }
   }
